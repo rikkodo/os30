@@ -7,6 +7,6 @@ DIR=${PWD}
 export PATH="$DIR/bin:$PATH"
 cd ${ORG}
 
-export MY_PREFIX="<OS30>"
+export MY_PREFIX="<OS30> ${MY_PREFIX}"
 
 bash
