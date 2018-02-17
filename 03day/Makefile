@@ -1,4 +1,4 @@
-IPL=hello-os.asm
+IPL=ipl.asm
 IPL_IMG=ipl.img
 LST=asm.lst
 IMG=os.img

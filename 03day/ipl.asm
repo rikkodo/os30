@@ -39,6 +39,7 @@ entry:
         MOV     DH,0        ; ヘッド    0
         MOV     CL,2        ; セクタ    2
 
+readloop:
         MOV     SI,0        ; エラーカウンタ(レジスタ)
 retry:
         MOV     AH,0x02     ; ディスク読み出し
