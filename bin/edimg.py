@@ -78,6 +78,8 @@ def catimg():
                 outfile.write("\0")
 
         i += UNIT
+
+    os.remove(TMPFILE)
     return
 
 
