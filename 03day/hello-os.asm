@@ -39,11 +39,20 @@ entry:
         MOV     DH,0        ; ヘッド    0
         MOV     CL,2        ; セクタ    2
 
+        MOV     SI,0        ; エラーカウンタ(レジスタ)
+retry:
         MOV     AH,0x02     ; ディスク読み出し
         MOV     AL,1        ; 1セクタ
         MOV     DL,0x00     ; Aドライブ
         INT     0x13        ; ディスクBIOSコール
-        JC      error
+        JNC     fin         ; エラーがなければFINへ
+        ADD     SI,1
+        CMP     SI,5
+        JAE     error       ; エラーカウント >= 5 でエラー出力
+        MOV     AH,0x00     ; ドライブのリセット
+        MOV     DL,0x00     ; A ドライブ
+        INT     0x13        ; ディスクBIOSコール
+        JMP     retry
 
 ; 無限ループ
 fin:
