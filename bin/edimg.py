@@ -11,8 +11,6 @@ UNIT = 16
 
 IPL = ""
 OUTFILE = "void.img"
-TMPFILE = "tmp.img"
-NASMOPT = ""
 
 FIXED = [
     # ~~~~~
@@ -28,7 +26,6 @@ FIXED = [
 def chkarg():
     global IPL
     global OUTFILE
-    global NASMOPT
 
     i = 1
     while(i < len(sys.argv)):
@@ -38,10 +35,6 @@ def chkarg():
         elif (sys.argv[i] == "-o"):
             i += 1
             OUTFILE = sys.argv[i]
-        elif (sys.argv[i] == "-l"):
-            i += 1
-            NASMOPT += " -l %s" % sys.argv[i]
-
         i += 1
     if (IPL == ""):
         print >> sys.stderr, "%s: NO IPL Assigned." % sys.argv[0]
@@ -49,16 +42,8 @@ def chkarg():
     return
 
 
-def doasm():
-    ret = os.system("nasm %s -o %s %s" % (NASMOPT, TMPFILE, IPL))
-    if (ret != 0):
-        print >> sys.stderr, "%s: NASM ERROR." % sys.argv[0]
-        exit(1)
-    return
-
-
 def catimg():
-    infile = open(TMPFILE, "rb")
+    infile = open(IPL, "rb")
     outfile = open(OUTFILE, "wb")
 
     i = 0
@@ -79,21 +64,18 @@ def catimg():
 
         i += UNIT
 
-    os.remove(TMPFILE)
     return
 
 
 if __name__ == "__main__":
     if (len(sys.argv) == 1):
-        print >> sys.stderr, """Usage %s -ipl <ipl.asm>
+        print >> sys.stderr, """Usage %s -ipl <ipl.img>
 [-o <outfile.img>]
 [-l <listfile.lst>]
 """ % sys.argv[0]
         exit(1)
 
     chkarg()
-
-    doasm()
 
     catimg()
 
