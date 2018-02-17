@@ -9,7 +9,7 @@ default :
 		make $(IMG)
 
 run : $(IMG)
-		qemu-system-i386 -fda $(IMG)
+		qemu-system-i386 qemu-system-i386 -drive file=${IMG},index=0,if=floppy,format=raw
 
 $(IMG) : $(IPL)
 		$(EDIMG) -ipl $(IPL) -o $(IMG) -l $(LST)
