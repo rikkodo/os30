@@ -1,22 +1,35 @@
-IPL=ipl.asm
-IPL_IMG=ipl.img
-LST=asm.lst
-IMG=os.img
+DIR_BIN=bin
+DIR_LST=lst
 
-EDIMG=edimg.py
+BINS= \
+		$(DIR_BIN)/ipl.bin \
+		$(DIR_BIN)/haribote.bin
+
+IMG=os.img
 
 
 default :
 		make $(IMG)
 
 run : $(IMG)
-		qemu-system-i386 qemu-system-i386 -drive file=${IMG},index=0,if=floppy,format=raw
+		qemu-system-i386 -drive file=${IMG},index=0,if=floppy,format=raw
 
-$(IMG) : $(IPL_IMG)
-		$(EDIMG) -ipl $(IPL_IMG) -o $(IMG)
+$(IMG) : $(BINS) Makefile
+		mformat -f 1440 -C -B $(DIR_BIN)/ipl.bin -i $@
+		mcopy $(DIR_BIN)/haribote.bin -i $@ ::
 
-$(IPL_IMG) : $(IPL)
-		nasm -l $(LST) -o $(IPL_IMG) $(IPL)
+$(DIR_BIN)/%.bin : *.asm $(DIR_LST) $(DIR_BIN)
+		nasm -l $(DIR_LST)/$*.lst -o $@ $*.asm
+
+$(DIR_LST) :
+		@if [ ! -d $@ ]; \
+			then echo "mkdir -p $@"; mkdir -p $@; \
+		fi
+
+$(DIR_BIN) :
+		@if [ ! -d $@ ]; \
+			then echo "mkdir -p $@"; mkdir -p $@; \
+		fi
 
 clean :
-		rm $(LST) $(IMG) $(IPL_IMG)
+		rm $(DIR_LST)/* $(DIR_BIN)/*.bin
