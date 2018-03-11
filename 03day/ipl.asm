@@ -1,5 +1,10 @@
 ; FAT32 FDD
     ORG 0x7c00
+
+SCTS    EQU     18      ; セクタ数
+HDRS    EQU     2       ; ヘッダ数
+CYLS    EQU     10      ; シリンダ数
+
 pbr:
         JMP     entry
         NOP
@@ -46,7 +51,7 @@ retry:
         MOV     AL,1        ; 1セクタ
         MOV     DL,0x00     ; Aドライブ
         INT     0x13        ; ディスクBIOSコール
-        JNC     fin         ; エラーがなければFINへ
+        JNC     next        ; エラーがなければ次のセクタ読み込みへ
         ADD     SI,1
         CMP     SI,5
         JAE     error       ; エラーカウント >= 5 でエラー出力
@@ -54,6 +59,27 @@ retry:
         MOV     DL,0x00     ; A ドライブ
         INT     0x13        ; ディスクBIOSコール
         JMP     retry
+next:
+        MOV     AX,ES       ; 次のセクタ書き込み先を指定
+        ADD     AX,0x0020   ; アドレスを1セクタぶん進める
+        MOV     ES,AX
+
+        ADD     CL,1        ; 次のセクタを指定
+        CMP     CL,SCTS     ; セクタ最大値まで読む．
+        JBE     readloop    ; セクタ最大値以下ならば次セクタ読み込み
+                            ; そうでなければ次のヘッダへ
+
+        MOV     CL,1        ; セクタリセット
+        ADD     DH,1        ; 次のヘッダへ
+        CMP     DH,HDRS     ; ヘッダ最大値まで読む．
+        JB      readloop    ; ヘッダ最大値未満ならば次セクタ読み込み
+                            ; そうでなければ次のシリンダへ
+
+        MOV     DH,0        ; ヘッダリセット
+        ADD     CH,1        ; 次のシリンダへ
+        CMP     CH,CYLS     ; シリンダ最大値まで読む．
+        JB      readloop    ; シリンダ目標値未満ならば次のセクタ読み込み
+                            ; そうでなければ無限ループへ
 
 ; 無限ループ
 fin:
