@@ -81,10 +81,9 @@ next:
         JB      readloop    ; シリンダ目標値未満ならば次のセクタ読み込み
                             ; そうでなければ無限ループへ
 
-; 無限ループ
-fin:
-        HLT
-        JMP     fin
+; Read Finish. goto haribote.sys
+        MOV     [0x0ff0],CH ; IPL の読み込みシリンダ数
+        JMP     0xc200
 
 ;  error message
 error:
@@ -98,6 +97,11 @@ putloop:
         MOV     BX,15
         INT     0x10
         JMP     putloop
+
+; エラー無限ループ
+fin:
+        HLT
+        JMP     fin
 
 msg:
         DB      0x0a, 0x0a
