@@ -134,8 +134,3 @@ GDTR0:
 
 bootpack:
 
-
-; おしまい．
-fin:
-        HLT
-        JMP     fin

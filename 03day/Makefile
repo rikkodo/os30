@@ -3,7 +3,11 @@ DIR_LST=lst
 
 BINS= \
 		$(DIR_BIN)/ipl.bin \
-		$(DIR_BIN)/haribote.bin
+		$(DIR_BIN)/haribote.bin \
+		$(DIR_BIN)/haribote.sys
+
+HRBS= \
+		$(DIR_BIN)/bootpack.hrb
 
 IMG=os.img
 
@@ -14,12 +18,18 @@ default :
 run : $(IMG)
 		qemu-system-i386 -drive file=${IMG},index=0,if=floppy,format=raw
 
-$(IMG) : $(BINS) Makefile
+$(IMG) : $(DIR_BIN)/ipl.bin $(DIR_BIN)/haribote.sys Makefile
 		mformat -f 1440 -C -B $(DIR_BIN)/ipl.bin -i $@
-		mcopy $(DIR_BIN)/haribote.bin -i $@ ::
+		mcopy $(DIR_BIN)/haribote.sys -i $@ ::
 
-$(DIR_BIN)/%.bin : *.asm $(DIR_LST) $(DIR_BIN)
+$(DIR_BIN)/%.bin : *.asm $(DIR_LST) $(DIR_BIN) Makefile
 		nasm -l $(DIR_LST)/$*.lst -o $@ $*.asm
+
+$(DIR_BIN)/%.hrb : *.c har.ld $(DIR_BIN) Makefile
+		gcc -march=i486 -m32 -nostdlib -T har.ld $*.c -o $@
+
+$(DIR_BIN)/%.sys : $(DIR_BIN)/*.bin $(HRBS) Makefile
+		cat $(DIR_BIN)/$*.bin $(HRBS) > $@
 
 $(DIR_LST) :
 		@if [ ! -d $@ ]; \
@@ -32,4 +42,4 @@ $(DIR_BIN) :
 		fi
 
 clean :
-		rm $(DIR_LST)/* $(DIR_BIN)/*.bin
+		rm $(DIR_LST)/* $(DIR_BIN)/*
