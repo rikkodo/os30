@@ -5,7 +5,7 @@ DSKCAC0 EQU     0x00008000  ; ディスクキャッシュの場所（リアル�
 
 ; BOOT INFO
 
-CYSL    EQU     0x0ff0      ; 読み込みシリンダ数 ブートセクタが設定
+CYLS    EQU     0x0ff0      ; 読み込みシリンダ数 ブートセクタが設定
 LEDS    EQU     0x0ff1      ; キーボードの LED 状態を記録
 VMODE   EQU     0x0ff2      ; 色数 何ビットカラーか
 SCRNX   EQU     0x0ff4      ; 解像度 X
@@ -50,7 +50,7 @@ VRAM    EQU     0x0ff8      ; グラフィックバッファ開始位置
         CALL    waitkbdout
 
 ; プロテクトモードへ移行
-[INSTRSET "i486p"]          ; 486の命令まで使いたいという記述
+; [INSTRSET "i486p"]
         LGDT    [GDTR0]     ; 暫定GDTを設定
         MOV     EAX,CR0
         AND     EAX,0x7fffffff  ; bit31を0にする（ページング禁止のため）
@@ -120,7 +120,7 @@ memcpy:
 
 
 GDT0:
-        RESB    8               ; ヌルセレクタ
+        TIMES   8 DB 0          ; ヌルセレクタ
         DW      0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
         DW      0xffff,0x0000,0x9a28,0x0047 ; 実行可能セグメント32bit（bootpack用)
 
@@ -130,7 +130,7 @@ GDTR0:
         DW      8*3-1
         DD      GDT0
 
-        ALIGNB  16
+        ALIGNB  16, DB 0
 
 bootpack:
 
