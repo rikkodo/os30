@@ -6,6 +6,9 @@ BINS= \
 		$(DIR_BIN)/haribote.bin \
 		$(DIR_BIN)/haribote.sys
 
+OBJS= \
+		$(DIR_BIN)/nasmfunc.o
+
 HRBS= \
 		$(DIR_BIN)/bootpack.hrb
 
@@ -25,8 +28,11 @@ $(IMG) : $(DIR_BIN)/ipl.bin $(DIR_BIN)/haribote.sys Makefile
 $(DIR_BIN)/%.bin : *.asm $(DIR_LST) $(DIR_BIN) Makefile
 		nasm -l $(DIR_LST)/$*.lst -o $@ $*.asm
 
-$(DIR_BIN)/%.hrb : *.c har.ld $(DIR_BIN) Makefile
-		gcc -march=i486 -m32 -nostdlib -T har.ld $*.c -o $@
+$(DIR_BIN)/%.o : *.asm Makefile
+	nasm -g -f elf $*.asm -o $@
+
+$(DIR_BIN)/%.hrb : *.c har.ld $(DIR_BIN) $(OBJS) Makefile
+		gcc -march=i486 -m32 -nostdlib -T har.ld -g $*.c $(OBJS) -o $@
 
 $(DIR_BIN)/%.sys : $(DIR_BIN)/*.bin $(HRBS) Makefile
 		cat $(DIR_BIN)/$*.bin $(HRBS) > $@
