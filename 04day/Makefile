@@ -1,5 +1,5 @@
 DIR_BIN=bin
-DIR_LST=lst
+uIR_LST=lst
 
 BINS= \
 		$(DIR_BIN)/ipl.bin \
@@ -18,7 +18,7 @@ IMG=os.img
 default :
 		make $(IMG)
 
-run : $(IMG)
+run :
 		qemu-system-i386 -drive file=${IMG},index=0,if=floppy,format=raw
 
 $(IMG) : $(DIR_BIN)/ipl.bin $(DIR_BIN)/haribote.sys Makefile
