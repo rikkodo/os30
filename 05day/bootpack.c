@@ -18,6 +18,14 @@ static void boxfill8(
         unsigned char col_no,
         int x0, int y0, int x1, int y1);
 
+static void putfont8(
+        unsigned char *vram,
+        int screen_width,
+        unsigned char col_no,
+        const unsigned char *font,
+        int x, int y);
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // struct
 struct BOOTINFO {
@@ -62,6 +70,14 @@ void HariMain (void)
             binfo->vram,
             binfo->scrnx,
             binfo->scrny);
+
+    static const unsigned char font_A[16] =
+    {
+        0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
+        0x24, 0x7e, 0x42, 0x42, 0x42, 0xe7, 0x00, 0x00,
+    };
+
+    putfont8(binfo->vram, binfo->scrnx, COL8_WHITE, font_A, 10, 10);
 
     /* hlt */
     for (;;)
@@ -143,6 +159,32 @@ static void boxfill8(
     }
 
     return;
+}
+
+static void putfont8(
+        unsigned char *vram,
+        int screen_width,
+        unsigned char col_no,
+        const unsigned char *font,
+        int x, int y)
+{
+    int i = 0;
+
+    for (i = 0; i < 16; i++)
+    {
+        unsigned char *p = vram + (y + i) * screen_width + x;
+        unsigned char d = font[i];
+        if ((d & 0x80) != 0) {p[0] = col_no;}
+        if ((d & 0x40) != 0) {p[1] = col_no;}
+        if ((d & 0x20) != 0) {p[2] = col_no;}
+        if ((d & 0x10) != 0) {p[3] = col_no;}
+        if ((d & 0x08) != 0) {p[4] = col_no;}
+        if ((d & 0x04) != 0) {p[5] = col_no;}
+        if ((d & 0x02) != 0) {p[6] = col_no;}
+        if ((d & 0x01) != 0) {p[7] = col_no;}
+    }
+
+
 }
 
 static void init_screen(unsigned char *vram, int x, int y)
