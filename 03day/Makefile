@@ -4,7 +4,7 @@ DIR_LST=lst
 default :
 		make os.img
 
-run : os.img
+run :
 		qemu-system-i386 -drive file=os.img,index=0,if=floppy,format=raw
 
 os.img : $(DIR_BIN)/ipl.bin $(DIR_BIN)/haribote.sys Makefile
