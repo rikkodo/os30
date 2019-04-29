@@ -4,7 +4,7 @@ LST=asm.lst
 
 IMG=os.img
 
-EDIMG=edimg.py
+EDIMG=../bin/edimg.py
 
 
 default : $(IMG)
