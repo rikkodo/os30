@@ -39,14 +39,27 @@ static void boxfill8(
 void HariMain (void)
 {
     int i = 0;
-    char *p = (char *)0xa0000;  /* VRAM番地先頭 */
+    char *vram = (char *)0xa0000;  /* VRAM番地先頭 */
 
     /* パレット初期化 */
     init_palette();
 
-    boxfill8(p, SCREEN_WIDTH, COL8_RED, 20, 20, 120, 120);
-    boxfill8(p, SCREEN_WIDTH, COL8_GREEN,  70,  50, 170, 150);
-    boxfill8(p, SCREEN_WIDTH, COL8_BLUE, 120,  80, 220, 180);
+    boxfill8(vram, SCREEN_WIDTH, COL8_DARK_CYAN,  0,                0,                  SCREEN_WIDTH -  1, SCREEN_HEIGHT - 29);
+    boxfill8(vram, SCREEN_WIDTH, COL8_GRAY,       0,                SCREEN_HEIGHT - 28, SCREEN_WIDTH -  1, SCREEN_HEIGHT - 28);
+    boxfill8(vram, SCREEN_WIDTH, COL8_WHITE,      0,                SCREEN_HEIGHT - 27, SCREEN_WIDTH -  1, SCREEN_HEIGHT - 27);
+    boxfill8(vram, SCREEN_WIDTH, COL8_GRAY,       0,                SCREEN_HEIGHT - 26, SCREEN_WIDTH -  1, SCREEN_HEIGHT -  1);
+
+    boxfill8(vram, SCREEN_WIDTH, COL8_WHITE,      3,                SCREEN_HEIGHT - 24, 59,                SCREEN_HEIGHT - 24);
+    boxfill8(vram, SCREEN_WIDTH, COL8_WHITE,      2,                SCREEN_HEIGHT - 24,  2,                SCREEN_HEIGHT -  4);
+    boxfill8(vram, SCREEN_WIDTH, COL8_DARK_GRAY,  3,                SCREEN_HEIGHT -  4, 59,                SCREEN_HEIGHT -  4);
+    boxfill8(vram, SCREEN_WIDTH, COL8_DARK_GRAY, 59,                SCREEN_HEIGHT - 23, 59,                SCREEN_HEIGHT -  5);
+    boxfill8(vram, SCREEN_WIDTH, COL8_BLACK,      2,                SCREEN_HEIGHT -  3, 59,                SCREEN_HEIGHT -  3);
+    boxfill8(vram, SCREEN_WIDTH, COL8_BLACK,     60,                SCREEN_HEIGHT - 24, 60,                SCREEN_HEIGHT -  3);
+
+    boxfill8(vram, SCREEN_WIDTH, COL8_DARK_GRAY, SCREEN_WIDTH - 47, SCREEN_HEIGHT - 24, SCREEN_WIDTH -  4, SCREEN_HEIGHT - 24);
+    boxfill8(vram, SCREEN_WIDTH, COL8_DARK_GRAY, SCREEN_WIDTH - 47, SCREEN_HEIGHT - 23, SCREEN_WIDTH - 47, SCREEN_HEIGHT -  4);
+    boxfill8(vram, SCREEN_WIDTH, COL8_WHITE,     SCREEN_WIDTH - 47, SCREEN_HEIGHT -  3, SCREEN_WIDTH -  4, SCREEN_HEIGHT -  3);
+    boxfill8(vram, SCREEN_WIDTH, COL8_WHITE,     SCREEN_WIDTH -  3, SCREEN_HEIGHT - 24, SCREEN_WIDTH -  3, SCREEN_HEIGHT -  3);
 
     /* hlt */
     for (;;)
