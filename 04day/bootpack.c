@@ -39,7 +39,7 @@ static void boxfill8(
 void HariMain (void)
 {
     int i = 0;
-    char *vram = (char *)0xa0000;  /* VRAM番地先頭 */
+    unsigned char *vram = (unsigned char *)0xa0000;  /* VRAM番地先頭 */
 
     /* パレット初期化 */
     init_palette();
