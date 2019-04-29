@@ -25,6 +25,13 @@ static void putfont8(
         const unsigned char *font,
         int x, int y);
 
+static void putfont8_str(
+        unsigned char *vram,
+        int screen_width,
+        unsigned char col_no,
+        const unsigned char *str,
+        int x, int y);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // struct
@@ -71,13 +78,13 @@ void HariMain (void)
             binfo->scrnx,
             binfo->scrny);
 
-    static const unsigned char font_A[16] =
-    {
-        0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
-        0x24, 0x7e, 0x42, 0x42, 0x42, 0xe7, 0x00, 0x00,
-    };
+    putfont8_str(binfo->vram, binfo->scrnx,
+            COL8_WHITE, "ABC 123", 8, 8);
 
-    putfont8(binfo->vram, binfo->scrnx, COL8_WHITE, font_A, 10, 10);
+    putfont8_str(binfo->vram, binfo->scrnx,
+            COL8_BLACK, "Haribote OS.", 31, 31);
+    putfont8_str(binfo->vram, binfo->scrnx,
+            COL8_WHITE, "Haribote OS.", 30, 30);
 
     /* hlt */
     for (;;)
@@ -183,8 +190,27 @@ static void putfont8(
         if ((d & 0x02) != 0) {p[6] = col_no;}
         if ((d & 0x01) != 0) {p[7] = col_no;}
     }
+    return;
+}
 
+static void putfont8_str(
+        unsigned char *vram,
+        int screen_width,
+        unsigned char col_no,
+        const unsigned char *str,
+        int x, int y)
+{
+    extern unsigned const char hankaku[4096];
 
+    unsigned const char *c = 0;
+    for (c = str; *c != 0x00; c++)
+    {
+        putfont8(vram, screen_width, col_no,
+                hankaku + *c * 16, x, y);
+        x += 8;
+    }
+
+    return;
 }
 
 static void init_screen(unsigned char *vram, int x, int y)

@@ -5,3 +5,6 @@ https://qiita.com/nkimra/items/d0e0b0904da00f9117ff
 http://oplern.hatenablog.com/entry/2017/06/30/231027
 
 https://github.com/komukomo/hariboteOS/blob/master/Makefile
+
+# FONTS
+https://vanya.jp.net/os/haribote.html

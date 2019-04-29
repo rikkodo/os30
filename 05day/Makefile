@@ -1,6 +1,10 @@
 DIR_BIN=bin
 DIR_LST=lst
 
+CSOURCE= \
+	bootpack.c \
+	fonts.c
+
 default :
 		make os.img
 
@@ -17,8 +21,8 @@ $(DIR_BIN)/%.bin : %.asm $(DIR_LST) $(DIR_BIN) Makefile
 $(DIR_BIN)/%.o : %.asm $(DIR_BIN) Makefile
 		nasm -g -f elf $*.asm -o $@
 
-$(DIR_BIN)/bootpack.hrb : bootpack.c har.ld $(DIR_BIN) $(DIR_BIN)/nasmfunc.o Makefile
-		gcc -march=i486 -m32 -nostdlib -T har.ld -g bootpack.c $(DIR_BIN)/nasmfunc.o -o $@
+$(DIR_BIN)/bootpack.hrb : $(CSOURCE) har.ld $(DIR_BIN) $(DIR_BIN)/nasmfunc.o Makefile
+		gcc -march=i486 -m32 -nostdlib -T har.ld -g $(CSOURCE) $(DIR_BIN)/nasmfunc.o -o $@
 
 $(DIR_BIN)/haribote.sys : $(DIR_BIN)/haribote.bin $(DIR_BIN)/bootpack.hrb Makefile
 		cat $(DIR_BIN)/haribote.bin $(DIR_BIN)/bootpack.hrb > $@
