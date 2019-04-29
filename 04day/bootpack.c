@@ -9,21 +9,44 @@ extern void io_store_eflags(int eflags);
 static void init_palette(void);
 static void set_palette(int start, int cnt, unsigned char *rgb);
 
+static void boxfill8(
+        unsigned char *vram,
+        int screen_width,
+        unsigned char col_no,
+        int x0, int y0, int x1, int y1);
+
+
+#define COL8_BLACK       (0)
+#define COL8_RED         (1)
+#define COL8_GREEN       (2)
+#define COL8_YELLOW      (3)
+#define COL8_BLUE        (4)
+#define COL8_PURPLE      (5)
+#define COL8_CYAN        (6)
+#define COL8_WHITE       (7)
+#define COL8_GRAY        (8)
+#define COL8_DARK_RED    (9)
+#define COL8_DARK_GREEN  (10)
+#define COL8_DARK_YELLOW (11)
+#define COL8_DARK_BLUE   (12)
+#define COL8_DARK_PURPLE (13)
+#define COL8_DARK_CYAN   (14)
+#define COL8_DARK_GRAY   (15)
+
+#define SCREEN_WIDTH     (320)
+#define SCREEN_HEIGHT    (200)
 
 void HariMain (void)
 {
     int i = 0;
-    char *p = (char *)0;
+    char *p = (char *)0xa0000;  /* VRAM番地先頭 */
 
     /* パレット初期化 */
     init_palette();
 
-    /* 色ぬり */
-    for (i = 0xa0000; i <= 0xaffff; i++)
-    {
-        char* p = (char *)i;
-        *p = i & 0x0f;
-    }
+    boxfill8(p, SCREEN_WIDTH, COL8_RED, 20, 20, 120, 120);
+    boxfill8(p, SCREEN_WIDTH, COL8_GREEN,  70,  50, 170, 150);
+    boxfill8(p, SCREEN_WIDTH, COL8_BLUE, 120,  80, 220, 180);
 
     /* hlt */
     for (;;)
@@ -86,3 +109,24 @@ void set_palette(int start, int cnt, unsigned char *rgb)
 
     return;
 }
+
+static void boxfill8(
+        unsigned char *vram,
+        int screen_width,
+        unsigned char col_no,
+        int x0, int y0, int x1, int y1)
+{
+    int xx = 0;
+    int yy = 0;
+
+    for (yy = y0; yy <= y1; yy++)
+    {
+        for (xx = x0; xx <= x1; xx++)
+        {
+            vram[yy * screen_width + xx] = col_no;
+        }
+    }
+
+    return;
+}
+
