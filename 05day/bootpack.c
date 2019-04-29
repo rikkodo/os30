@@ -1,13 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////
+// nasmfunc.asm
 extern void io_hlt(void);
 extern void io_cli(void);
 extern void io_out8(int port, int data);
 extern int  io_load_eflags(void);
 extern void io_store_eflags(int eflags);
 
-#define COL_CNT (16)
-
+////////////////////////////////////////////////////////////////////////////////
+// static function
 static void init_palette(void);
-static void init_screen(unsigned char *vram, int xsize, int ysize);
+static void init_screen(unsigned char *vram, int x, int y);
 static void set_palette(int start, int cnt, unsigned char *rgb);
 
 static void boxfill8(
@@ -16,6 +18,17 @@ static void boxfill8(
         unsigned char col_no,
         int x0, int y0, int x1, int y1);
 
+////////////////////////////////////////////////////////////////////////////////
+// struct
+struct BOOTINFO {
+    unsigned char cyls, leds, vmode, reserve;
+    unsigned short scrnx, scrny;
+    unsigned char *vram;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// colors
+#define COL_CNT (16)
 
 #define COL8_BLACK       (0)
 #define COL8_RED         (1)
@@ -34,33 +47,21 @@ static void boxfill8(
 #define COL8_DARK_CYAN   (14)
 #define COL8_DARK_GRAY   (15)
 
-#define SCREEN_WIDTH     (320)
-#define SCREEN_HEIGHT    (200)
-
+////////////////////////////////////////////////////////////////////////////////
+// main
 void HariMain (void)
 {
-    int i = 0;
-    unsigned char *vram = 0;
-    int xsize = 0;
-    int ysize = 0;
-
-    unsigned int *binfo_vram = 0;
-    unsigned short *binfo_scrnx = 0;
-    unsigned short *binfo_scrny = 0;
-
-    binfo_scrnx = (unsigned short *)0x0ff4;
-    binfo_scrny = (unsigned short *)0x0ff6;
-    binfo_vram = (unsigned int *)0x0ff8;
-
-    xsize = *binfo_scrnx;
-    ysize = *binfo_scrny;
-    vram = (unsigned char*) *binfo_vram;
+    /* read boot info */
+    struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
 
     /* パレット初期化 */
     init_palette();
 
     /* スクリーン初期化 */
-    init_screen(vram, xsize, ysize);
+    init_screen(
+            binfo->vram,
+            binfo->scrnx,
+            binfo->scrny);
 
     /* hlt */
     for (;;)
