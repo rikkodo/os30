@@ -15,12 +15,20 @@ void mysprintf (char *str, char *fmt, ...);
 static void init_palette(void);
 static void init_screen(unsigned char *vram, int x, int y);
 static void set_palette(int start, int cnt, unsigned char *rgb);
+static void init_mouse_cursor8(unsigned char *mouse, char back_col_no);
 
 static void boxfill8(
         unsigned char *vram,
         int screen_width,
         unsigned char col_no,
         int x0, int y0, int x1, int y1);
+
+static void putblock8_8(
+        unsigned char *vram,
+        int screen_width,
+        int pxsize, int pysize,
+        int px0, int py0,
+        unsigned char *buf, int bxsize);
 
 static void putfont8(
         unsigned char *vram,
@@ -32,9 +40,9 @@ static void putfont8(
 static void putfonts8_asc(
         unsigned char *vram,
         int screen_width,
+        int x, int y,
         unsigned char col_no,
-        const char *str,
-        int x, int y);
+        const char *str);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +81,13 @@ void HariMain (void)
     /* read boot info */
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
 
+    /* message buffer */
     char s[128] = {};
+
+    /* mouse cursor */
+    unsigned char mcursor[256] = {};
+    int mx = 0;
+    int my = 0;
 
     /* パレット初期化 */
     init_palette();
@@ -83,17 +97,15 @@ void HariMain (void)
             binfo->vram,
             binfo->scrnx,
             binfo->scrny);
+    /* 画面中央になるように座標計算 */
+    mx = (binfo->scrnx - 16) / 2;
+    my = (binfo->scrny - 28 - 16) / 2;
+    init_mouse_cursor8(mcursor, COL8_DARK_CYAN);
+    putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
 
-    putfonts8_asc(binfo->vram, binfo->scrnx,
-            COL8_WHITE, "ABC 123", 8, 8);
+    mysprintf(s, "(%d, %d)", mx, my);
+    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_WHITE, s);
 
-    putfonts8_asc(binfo->vram, binfo->scrnx,
-            COL8_BLACK, "Haribote OS.", 31, 31);
-    putfonts8_asc(binfo->vram, binfo->scrnx,
-            COL8_WHITE, "Haribote OS.", 30, 30);
-
-    mysprintf(s, "scrny = %d", (int)binfo->scrny);
-    putfonts8_asc(binfo->vram, binfo->scrnx, COL8_WHITE, s, 16, 64);
 
     /* hlt */
     for (;;)
@@ -157,6 +169,52 @@ static void set_palette(int start, int cnt, unsigned char *rgb)
     return;
 }
 
+static void init_mouse_cursor8(unsigned char *mouse, char back_col_no)
+    /* マウスカーソルを準備（16x16） */
+{
+    static unsigned char cursor[16][16] =
+    {
+        "**************..",
+        "*OOOOOOOOOOO*...",
+        "*OOOOOOOOOO*....",
+        "*OOOOOOOOO*.....",
+        "*OOOOOOOO*......",
+        "*OOOOOOO*.......",
+        "*OOOOOOO*.......",
+        "*OOOOOOOO*......",
+        "*OOOO**OOO*.....",
+        "*OOO*..*OOO*....",
+        "*OO*....*OOO*...",
+        "*O*......*OOO*..",
+        "**........*OOO*.",
+        "*..........*OOO*",
+        "............*OO*",
+        ".............***"
+    };
+    int x = 0;
+    int y = 0;
+
+    for (y = 0; y < 16; y++)
+    {
+        for (x = 0; x < 16; x++)
+        {
+            if (cursor[y][x] == '*')
+            {
+                mouse[y * 16 + x] = COL8_BLACK;
+            }
+            else if (cursor[y][x] == 'O')
+            {
+                mouse[y * 16 + x] = COL8_WHITE;
+            }
+            else if (cursor[y][x] == '.')
+            {
+                mouse[y * 16 + x] = back_col_no;
+            }
+        }
+    }
+    return;
+}
+
 static void boxfill8(
         unsigned char *vram,
         int screen_width,
@@ -205,9 +263,9 @@ static void putfont8(
 static void putfonts8_asc(
         unsigned char *vram,
         int screen_width,
+        int x, int y,
         unsigned char col_no,
-        const char *str,
-        int x, int y)
+        const char *str)
 {
     extern unsigned const char hankaku[4096];
 
@@ -219,6 +277,26 @@ static void putfonts8_asc(
         x += 8;
     }
 
+    return;
+}
+
+static void putblock8_8(
+        unsigned char *vram,
+        int screen_width,
+        int pxsize, int pysize,
+        int px0, int py0,
+        unsigned char *buf, int bxsize)
+{
+    int x = 0;
+    int y = 0;
+
+    for (y = 0; y < pysize; y++)
+    {
+        for (x = 0; x < pxsize; x++)
+        {
+            vram[(py0 + y) * screen_width + (px0 + x)] = buf[y * bxsize + x];
+        }
+    }
     return;
 }
 
