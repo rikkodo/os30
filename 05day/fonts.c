@@ -2,7 +2,7 @@
 #define _ )*2
 #define s ((((((((0
 
-char hankaku[4096] = {
+unsigned const char hankaku[4096] = {
 
 /* char 0x00 */
 s   _ _ _ _ _ _ _ _   ,
