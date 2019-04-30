@@ -7,6 +7,10 @@ extern int  io_load_eflags(void);
 extern void io_store_eflags(int eflags);
 
 ////////////////////////////////////////////////////////////////////////////////
+// mysprintf.c
+void mysprintf (char *str, char *fmt, ...);
+
+////////////////////////////////////////////////////////////////////////////////
 // static function
 static void init_palette(void);
 static void init_screen(unsigned char *vram, int x, int y);
@@ -25,11 +29,11 @@ static void putfont8(
         const unsigned char *font,
         int x, int y);
 
-static void putfont8_str(
+static void putfonts8_asc(
         unsigned char *vram,
         int screen_width,
         unsigned char col_no,
-        const unsigned char *str,
+        const char *str,
         int x, int y);
 
 
@@ -69,6 +73,8 @@ void HariMain (void)
     /* read boot info */
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
 
+    char s[128] = {};
+
     /* パレット初期化 */
     init_palette();
 
@@ -78,13 +84,16 @@ void HariMain (void)
             binfo->scrnx,
             binfo->scrny);
 
-    putfont8_str(binfo->vram, binfo->scrnx,
+    putfonts8_asc(binfo->vram, binfo->scrnx,
             COL8_WHITE, "ABC 123", 8, 8);
 
-    putfont8_str(binfo->vram, binfo->scrnx,
+    putfonts8_asc(binfo->vram, binfo->scrnx,
             COL8_BLACK, "Haribote OS.", 31, 31);
-    putfont8_str(binfo->vram, binfo->scrnx,
+    putfonts8_asc(binfo->vram, binfo->scrnx,
             COL8_WHITE, "Haribote OS.", 30, 30);
+
+    mysprintf(s, "scrny = %d", (int)binfo->scrny);
+    putfonts8_asc(binfo->vram, binfo->scrnx, COL8_WHITE, s, 16, 64);
 
     /* hlt */
     for (;;)
@@ -193,16 +202,16 @@ static void putfont8(
     return;
 }
 
-static void putfont8_str(
+static void putfonts8_asc(
         unsigned char *vram,
         int screen_width,
         unsigned char col_no,
-        const unsigned char *str,
+        const char *str,
         int x, int y)
 {
     extern unsigned const char hankaku[4096];
 
-    unsigned const char *c = 0;
+    const char *c = 0;
     for (c = str; *c != 0x00; c++)
     {
         putfont8(vram, screen_width, col_no,
@@ -215,8 +224,6 @@ static void putfont8_str(
 
 static void init_screen(unsigned char *vram, int x, int y)
 {
-    init_palette();
-
     boxfill8(vram, x, COL8_DARK_CYAN,  0,     0,      x -  1, y - 29);
     boxfill8(vram, x, COL8_GRAY,       0,     y - 28, x -  1, y - 28);
     boxfill8(vram, x, COL8_WHITE,      0,     y - 27, x -  1, y - 27);
@@ -233,4 +240,7 @@ static void init_screen(unsigned char *vram, int x, int y)
     boxfill8(vram, x, COL8_DARK_GRAY, x - 47, y - 23, x - 47, y -  4);
     boxfill8(vram, x, COL8_WHITE,     x - 47, y -  3, x -  4, y -  3);
     boxfill8(vram, x, COL8_WHITE,     x -  3, y - 24, x -  3, y -  3);
-};
+
+    return;
+}
+

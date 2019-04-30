@@ -3,7 +3,8 @@ DIR_LST=lst
 
 CSOURCE= \
 	bootpack.c \
-	fonts.c
+	fonts.c \
+	mysprintf.c
 
 default :
 		make os.img

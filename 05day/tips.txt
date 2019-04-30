@@ -8,3 +8,6 @@ https://github.com/komukomo/hariboteOS/blob/master/Makefile
 
 # FONTS
 https://vanya.jp.net/os/haribote.html
+
+# sprintf
+https://qiita.com/pollenjp/items/d0f4e09a7fd50dfd58f5
