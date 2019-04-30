@@ -1,10 +1,12 @@
 DIR_BIN=bin
 DIR_LST=lst
 
-CSOURCE= \
-	bootpack.c \
-	fonts.c \
-	mysprintf.c
+OBJECT_BOOTPACK= \
+	$(DIR_BIN)/bootpack.o \
+	$(DIR_BIN)/graphic.o \
+	$(DIR_BIN)/dsctbl.o \
+	$(DIR_BIN)/fonts.o \
+	$(DIR_BIN)/mysprintf.o
 
 default :
 		make os.img
@@ -19,11 +21,14 @@ os.img : $(DIR_BIN)/ipl.bin $(DIR_BIN)/haribote.sys Makefile
 $(DIR_BIN)/%.bin : %.asm $(DIR_LST) $(DIR_BIN) Makefile
 		nasm -l $(DIR_LST)/$*.lst -o $@ $*.asm
 
-$(DIR_BIN)/%.o : %.asm $(DIR_BIN) Makefile
-		nasm -g -f elf $*.asm -o $@
+$(DIR_BIN)/nasmfunc.o : nasmfunc.asm $(DIR_BIN) Makefile
+		nasm -g -f elf nasmfunc.asm -o $@
 
-$(DIR_BIN)/bootpack.hrb : $(CSOURCE) har.ld $(DIR_BIN) $(DIR_BIN)/nasmfunc.o Makefile
-		gcc -march=i486 -m32 -nostdlib -T har.ld -g $(CSOURCE) $(DIR_BIN)/nasmfunc.o -o $@
+$(DIR_BIN)/%.o : %.c $(DIR_BIN) Makefile
+		gcc -c -march=i486 -m32 -nostdlib -g $*.c -o $@
+
+$(DIR_BIN)/bootpack.hrb : $(OBJECT_BOOTPACK) har.ld $(DIR_BIN) $(DIR_BIN)/nasmfunc.o Makefile
+		gcc -march=i486 -m32 -nostdlib -T har.ld -g $(OBJECT_BOOTPACK) $(DIR_BIN)/nasmfunc.o -o $@
 
 $(DIR_BIN)/haribote.sys : $(DIR_BIN)/haribote.bin $(DIR_BIN)/bootpack.hrb Makefile
 		cat $(DIR_BIN)/haribote.bin $(DIR_BIN)/bootpack.hrb > $@
