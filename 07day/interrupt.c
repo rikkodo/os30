@@ -1,8 +1,7 @@
 #include "bootpack.h"
 
-#define PORT_KEYDAT          0x0060    /* キーボードポート */
-
 struct FIFO8 keyinfo = {};
+struct FIFO8 mouseinfo = {};
 
 void init_pic(void)
 /* PICの初期化 */
@@ -29,9 +28,7 @@ void init_pic(void)
 /* PS/2キーボードからの割り込み */
 void inthandler21(int *esp)
 {
-    struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-    unsigned int keydata = 0;
-    char s[16] = {};
+    unsigned char keydata = 0;
 
     /* IRQ-01 受付完了を PIC に通知 */
     io_out8(PIC0_OCW2, 0x61);
@@ -44,13 +41,17 @@ void inthandler21(int *esp)
 /* PS/2マウスからの割り込み */
 void inthandler2c(int *esp)
 {
-    struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-    boxfill8(binfo->vram, binfo->scrnx, COL8_BLACK, 0, 0, 32 * 8 - 1, 15);
-    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_WHITE, "INT 2C (IRQ-12) : PS/2 mouse");
-    for (;;)
-    {
-        io_hlt();
-    }
+    unsigned char mousedata = 0;
+
+    /* IRQ-12 受付完了を PIC に通知 */
+    io_out8(PIC1_OCW2, 0x64);
+    /* IRQ-02 受付完了を PIC に通知 */
+    io_out8(PIC0_OCW2, 0x62);
+
+    mousedata = io_in8(PORT_KEYDAT);
+    fifo8_put(&mouseinfo, mousedata);
+
+    return;
 }
 
 /* PIC0からの不完全割り込み対策 */
