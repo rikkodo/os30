@@ -1,5 +1,9 @@
 #include "bootpack.h"
 
+#define PORT_KEYDAT          0x0060    /* キーボードポート */
+
+struct FIFO8 keyinfo = {};
+
 void init_pic(void)
 /* PICの初期化 */
 {
@@ -26,12 +30,15 @@ void init_pic(void)
 void inthandler21(int *esp)
 {
     struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-    boxfill8(binfo->vram, binfo->scrnx, COL8_BLACK, 0, 0, 32 * 8 - 1, 15);
-    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_WHITE, "INT 21 (IRQ-1) : PS/2 keyboard");
-    for (;;)
-    {
-        io_hlt();
-    }
+    unsigned int keydata = 0;
+    char s[16] = {};
+
+    /* IRQ-01 受付完了を PIC に通知 */
+    io_out8(PIC0_OCW2, 0x61);
+    keydata = io_in8(PORT_KEYDAT);
+    fifo8_put(&keyinfo, keydata);
+
+    return;
 }
 
 /* PS/2マウスからの割り込み */

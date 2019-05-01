@@ -3,6 +3,7 @@ DIR_LST=lst
 
 OBJECT_BOOTPACK= \
 	$(DIR_BIN)/bootpack.o \
+	$(DIR_BIN)/fifo.o \
 	$(DIR_BIN)/interrupt.o \
 	$(DIR_BIN)/graphic.o \
 	$(DIR_BIN)/dsctbl.o \
