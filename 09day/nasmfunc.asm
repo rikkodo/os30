@@ -7,8 +7,9 @@ section .text
     GLOBAL  io_out8, io_out16, io_out32
     GLOBAL  io_load_eflags, io_store_eflags
     GLOBAL  load_gdtr, load_idtr
-    GLOBAL load_cr0, store_cr0
+    GLOBAL  load_cr0, store_cr0
     GLOBAL  asm_inthandler21, asm_inthandler27, asm_inthandler2c
+    GLOBAL  memtest_sub
     EXTERN  inthandler21, inthandler27, inthandler2c
 
 
@@ -146,3 +147,36 @@ asm_inthandler2c:           ; callback interrupt 2c (mouse)
         POP     DS
         POP     ES
         IRETD
+
+memtest_sub:                ; unsigned int memtest_sub(u_ int start, u_int end)
+        PUSH    EDI
+        PUSH    ESI
+        PUSH    EBX
+        MOV     ESI,0xaa55aa55  ; pat0 = 0xaa55aa55;
+        MOV     EDI,0x55aa55aa  ; pat1 = 0x55aa55aa;
+        MOV     EAX,[ESP+12+4]  ; i = start
+mts_loop:
+        MOV     EBX,EAX
+        ADD     EBX,0x7ffc      ; p = i + 0x7ffc;
+        MOV     EDX,[EBX]       ; old = *p
+        MOV     [EBX],ESI       ; *p = pat0
+        XOR     DWORD [EBX],0xffffffff  ; *p ^= 0xffffffff
+        CMP     EDI,[EBX]       ; if (*p != pat1) goto fin
+        JNE     mts_fin
+        XOR     DWORD [EBX],0xffffffff  ; *p ^= 0xffffffff
+        CMP     ESI,[EBX]       ; if (*p != pat1) goto fin
+        JNE     mts_fin
+        MOV     [EBX],EDX       ; *p = old
+        ADD     EAX,0x8000      ; i+= 0x8000
+        CMP     EAX,[ESP+12+8]  ; if (i <= end) goto mts_loop
+        JBE mts_loop
+        POP     EBX
+        POP     ESI
+        POP     EDI
+        RET
+mts_fin:
+        MOV     [EBX],EDX   ; *p = old;
+        POP     EBX
+        POP     ESI
+        POP     EDI
+        RET

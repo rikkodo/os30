@@ -3,7 +3,6 @@
 #define EFLAGS_AC_BIT        0x00040000
 #define CR0_CACHE_DISABLE    0x60000000
 static unsigned int memtest(unsigned int start, unsigned int end);
-static unsigned int memtest_sub(unsigned int start, unsigned int end);
 
 static void HariMain_in(void);
 
@@ -173,40 +172,6 @@ static unsigned int memtest(unsigned int start, unsigned int end)
         cr0 = load_cr0();
         cr0 &= ~CR0_CACHE_DISABLE;  /* enable cache */
         store_cr0(cr0);
-    }
-
-    return i;
-}
-
-static unsigned int memtest_sub(unsigned int start, unsigned int end)
-{
-    unsigned int i = 0;
-    unsigned int *p = 0;
-    unsigned int old = 0;
-    const unsigned int pat0 = 0xaa55aa55;
-    const unsigned int pat1 = 0x55aa55aa;
-
-    for (i = start; i <= end; i += 4)
-    {
-        p = (unsigned int *)i;
-        old = *p;  /* save preb value */
-        *p = pat0;  /* write check */
-        *p ^= 0xffffffff;  /* reverse */
-        if (*p != pat1)
-        {
-            /* check ng */
-            *p = old;
-            break;
-        }
-
-        *p ^= 0xffffffff;  /* reverse again */
-        if (*p != pat0)
-        {
-            /* check ng */
-            *p = old;
-            break;
-        }
-        *p = old;  /* reverse again */
     }
 
     return i;
