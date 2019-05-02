@@ -31,10 +31,10 @@ $(DIR_BIN)/nasmfunc.o : nasmfunc.asm Makefile
 		nasm -g -f elf nasmfunc.asm -o $@
 
 $(DIR_BIN)/%.o : %.c  Makefile
-		gcc -c -march=i486 -m32 -nostdlib -g $*.c -o $@
+		gcc -Wall -Wextra -c -march=i486 -m32 -nostdlib -g $*.c -o $@
 
 $(DIR_BIN)/bootpack.hrb : $(OBJECT_BOOTPACK) har.ld $(DIR_BIN) $(DIR_BIN)/nasmfunc.o Makefile
-		gcc -march=i486 -m32 -nostdlib -T har.ld -g $(OBJECT_BOOTPACK) $(DIR_BIN)/nasmfunc.o -o $@
+		gcc -Wall -Wextra -march=i486 -m32 -nostdlib -T har.ld -g $(OBJECT_BOOTPACK) $(DIR_BIN)/nasmfunc.o -o $@
 
 $(DIR_BIN)/haribote.sys : $(DIR_BIN)/haribote.bin $(DIR_BIN)/bootpack.hrb Makefile
 		cat $(DIR_BIN)/haribote.bin $(DIR_BIN)/bootpack.hrb > $@

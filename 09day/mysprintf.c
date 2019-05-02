@@ -120,7 +120,7 @@ static int hex2asc(
 void mysprintf (char *str, char *fmt, ...)
 {
     va_list list;
-    int i, len;
+    int len;
     int right = 0;
     int plus = 0;
     int zero = 0;
