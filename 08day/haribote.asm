@@ -118,6 +118,7 @@ memcpy:
         RET
 ; memcpyはアドレスサイズプリフィクスを入れ忘れなければ、ストリング命令でも書ける
 
+        ALIGNB  16, DB 0
 
 GDT0:
         TIMES   8 DB 0          ; ヌルセレクタ
@@ -133,4 +134,3 @@ GDTR0:
         ALIGNB  16, DB 0
 
 bootpack:
-

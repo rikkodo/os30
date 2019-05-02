@@ -16,7 +16,7 @@ static int mouse_decode(struct MOUSE_DECODE *mousedec, int mousedata);
 void HariMain (void)
 {
     /* read boot info */
-    struct BOOTINFO *binfo = (struct BOOTINFO *) 0x00000ff0;
+    struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
 
     /* message buffer */
     char s[128] = {};
