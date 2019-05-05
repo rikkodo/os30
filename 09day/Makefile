@@ -17,6 +17,9 @@ default :
 		make $(DIR_LST)
 		make os.img
 
+run32 :
+		qemu-system-i386 -drive file=os.img,index=0,if=floppy,format=raw -m 32m
+
 run :
 		qemu-system-i386 -drive file=os.img,index=0,if=floppy,format=raw
 

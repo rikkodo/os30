@@ -4,6 +4,27 @@
 #define CR0_CACHE_DISABLE    0x60000000
 static unsigned int memtest(unsigned int start, unsigned int end);
 
+#define MEMMAN_MAX          4090
+
+struct FREEINFO {
+    unsigned int addr, size;
+};
+
+struct MEMMAN {
+    unsigned int infocnt;              /* 空き情報個数 */
+    unsigned int infocntmax;           /* 空き情報個数最大値: log用 */
+    unsigned int lostsum;              /* 解放に失敗した合計サイズ */
+    unsigned int lostcnt;              /* 解放に失敗した回数 */
+    struct FREEINFO info[MEMMAN_MAX];  /*  */
+};
+
+void memman_init(struct MEMMAN *memman);
+unsigned int memman_total(struct MEMMAN *memman);
+unsigned int memman_alloc(struct MEMMAN *memman, unsigned int reqsize);
+int memman_free(struct MEMMAN *memman, unsigned int addr, unsigned int size);
+
+#define MEMMAN_ADDR         0x003c0000
+
 static void HariMain_in(void);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,9 +44,6 @@ static void HariMain_in (void)
     /* read boot info */
     struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
 
-    /* message buffer */
-    char s[128] = {};
-
     /* key buffer */
     unsigned char keybuf[KEYBUF_READ_MAX] = {};
     unsigned char mousebuf[MOUSE_READ_MAX] = {};
@@ -37,6 +55,13 @@ static void HariMain_in (void)
     int mx = 0;
     int my = 0;
     int i = 0;
+
+    /* memory map */
+    struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+    unsigned int memtotal = 0;
+
+    /* message buffer */
+    char s[128] = {};
 
     fifo8_init(&keyinfo, KEYBUF_READ_MAX, keybuf);
     fifo8_init(&mouseinfo, MOUSE_READ_MAX, mousebuf);
@@ -61,8 +86,12 @@ static void HariMain_in (void)
     mysprintf(s, "(%03d, %03d)", mx, my);
     putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_WHITE, s);
 
-    i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
-    mysprintf(s, "memory %dMB", i);
+    memtotal = memtest(0x00400000, 0xbfffffff);
+    memman_init(memman);
+    memman_free(memman, 0x00001000, 0x009e000);  /* 0x00001000 -- 0x0009eff */
+    memman_free(memman, 0x00400000, memtotal - 0x00400000);
+
+    mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts8_asc(binfo->vram, binfo->scrnx, 0, 48, COL8_WHITE, s);
 
     /* hlt */
@@ -175,4 +204,128 @@ static unsigned int memtest(unsigned int start, unsigned int end)
     }
 
     return i;
+}
+
+void memman_init(struct MEMMAN *memman)
+{
+    memman->infocnt = 0;
+    memman->infocntmax = 0;
+    memman->lostsum = 0;
+    memman->lostcnt = 0;
+    return;
+}
+
+unsigned int memman_total(struct MEMMAN *memman)
+{
+    unsigned int i = 0;
+    unsigned int t = 0;
+    for (i = 0; i < memman->infocnt; i++)
+    {
+        t += memman->info[i].size;
+    }
+    return t;
+}
+
+unsigned int memman_alloc(struct MEMMAN *memman, unsigned int reqsize)
+{
+    unsigned int i = 0;
+    unsigned int adr = 0;
+
+    for (i = 0; i < memman->infocnt; i++)
+    {
+        if (memman->info[i].size >= reqsize)
+        {
+            /* 利用可能な空き */
+            adr = memman->info[i].addr;
+            memman->info[i].addr += reqsize;
+            memman->info[i].size -= reqsize;
+            if (memman->info[i].size == 0)
+            {
+                /* info[i]に空きがなくなったので前詰め */
+                memman->infocnt--;
+                for (/* NOP */; i< memman->infocnt; i++)
+                {
+                    memman->info[i] = memman->info[i + 1];
+                }
+            }
+            return adr;
+        }
+    }
+    return 0;  /* 空きが無い */
+}
+
+int memman_free(struct MEMMAN *memman, unsigned int addr, unsigned int size)
+{
+    unsigned int i = 0;
+    unsigned int j = 0;
+
+    /* 挿入箇所の探索 */
+    for (i = 0; i < memman->infocnt; i++)
+    {
+        if (memman->info[i].addr > addr)
+        {
+            break;
+        }
+    }
+
+    /* 前に情報あり */
+    if (i > 0)
+    {
+        if (memman->info[i - 1].addr + memman->info[i - 1].size == addr)
+        {
+            /* 単純に接続可能 */
+            memman->info[i - 1].size += size;
+            if (i < memman->infocnt)
+            {
+                if (addr + size == memman->info[i].addr)
+                {
+                    /* 後ろとも接続可能 */
+                    memman->info[i - 1].size += memman->info[i].size;
+                    /* info[i]に空きがなくなったので前詰め */
+                    memman->infocnt--;
+                    for (/* NOP */; i < memman->infocnt; i++)
+                    {
+                        memman->info[i] = memman->info[i + 1];
+                    }
+                }
+            }
+            return 0;
+        }
+    }
+
+    /* 前との接合はできなかった． */
+    if (i < memman->infocnt)
+    {
+        if (addr + size == memman->info[i].addr)
+        {
+            /* 後ろとならば接続可能 */
+            memman->info[i].addr = addr;
+            memman->info[i].size += size;
+            return 0;
+        }
+    }
+
+    /* 前とも後ろとも接合できず */
+    if (memman->infocnt < MEMMAN_MAX)
+    {
+        /* ずらす */
+        for (j = memman->infocnt; j > i; j--)
+        {
+            memman->info[j] = memman->info[j - 1];
+        }
+        memman->infocnt++;
+        if (memman->infocntmax < memman->infocnt)
+        {
+            memman->infocntmax = memman->infocnt;
+        }
+
+        memman->info[i].addr = addr;
+        memman->info[j].size = size;
+        return 0;
+    }
+
+    /* 格納不可能 */
+    memman->lostcnt++;
+    memman->lostsum += size;
+    return -1;
 }
