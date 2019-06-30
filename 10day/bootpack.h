@@ -124,7 +124,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mysprintf.c
-void mysprintf(char *str, char *fmt, ...);
+void mysprintf(char *str, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 
 ////////////////////////////////////////////////////////////////////////////////
 // kyeboard.c
@@ -165,3 +165,32 @@ void inthandler27(int *esp);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+
+////////////////////////////////////////////////////////////////////////////////
+// memory.c
+#define MEMMAN_MAX          4090
+#define MEMMAN_ADDR         0x003c0000
+
+struct FREEINFO {
+    unsigned int addr, size;
+};
+
+struct MEMMAN {
+    unsigned int infocnt;              /* 空き情報個数 */
+    unsigned int infocntmax;           /* 空き情報個数最大値: log用 */
+    unsigned int lostsum;              /* 解放に失敗した合計サイズ */
+    unsigned int lostcnt;              /* 解放に失敗した回数 */
+    struct FREEINFO info[MEMMAN_MAX];  /*  */
+};
+
+unsigned int memtest(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *memman);
+unsigned int memman_total(struct MEMMAN *memman);
+unsigned int memman_alloc(struct MEMMAN *memman, unsigned int reqsize);
+int memman_free(struct MEMMAN *memman, unsigned int addr, unsigned int size);
+
+unsigned int memman_alloc_4k(struct MEMMAN *memman, unsigned int reqsize);
+int memman_free_4k(struct MEMMAN *memman, unsigned int addr, unsigned int size);
+
+
+
