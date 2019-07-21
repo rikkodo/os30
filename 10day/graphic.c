@@ -205,4 +205,3 @@ void init_screen8(unsigned char *vram, int x, int y)
 
     return;
 }
-

@@ -37,10 +37,10 @@ struct FIFO8
         unsigned char *buf;
         int p, q, size, free, flags;
 };
-void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
-int  fifo8_put(struct FIFO8 *fifo, unsigned char data);
-int  fifo8_get(struct FIFO8 *fifo);
-int  fifo8_status(struct FIFO8 *fifo);
+void fifo8_init(struct FIFO8 * const fifo, int size, unsigned char * const buf);
+int  fifo8_put(struct FIFO8 * const fifo, unsigned char data);
+int  fifo8_get(struct FIFO8 * const fifo);
+int  fifo8_status(const struct FIFO8 * const fifo);
 
 ////////////////////////////////////////////////////////////////////////////////
 // graphic.c
@@ -192,5 +192,35 @@ int memman_free(struct MEMMAN *memman, unsigned int addr, unsigned int size);
 unsigned int memman_alloc_4k(struct MEMMAN *memman, unsigned int reqsize);
 int memman_free_4k(struct MEMMAN *memman, unsigned int addr, unsigned int size);
 
+////////////////////////////////////////////////////////////////////////////////
+// sheet.c
 
+#define MAX_SEEHTS   (256)
 
+struct SHEET {
+    unsigned char *buf;
+    unsigned int bxsize;
+    unsigned int bysize;
+    unsigned int vx0;
+    unsigned int vy0;
+    int col_inv;  // 透明色の番号
+    int height;
+    int flags;
+};
+
+struct SHEET_CTL {
+    unsigned char *vram;
+    unsigned int xsize;
+    unsigned int ysize;
+    int top;
+    struct SHEET *sheets[MAX_SEEHTS];  // z-layer
+    struct SHEET sheets0[MAX_SEEHTS];
+};
+
+struct SHEET_CTL *shtctl_init(struct MEMMAN * memman, unsigned char *vram, unsigned int xsize, unsigned int ysize);
+struct SHEET *sheet_alock(struct SHEET_CTL *ctl);
+void sheet_setbuf(struct SHEET * const sheet, unsigned char *buf, unsigned int xsize, unsigned int ysize, int col_inv);
+void sheet_updown(struct SHEET_CTL * const ctl, struct SHEET * const sheet, int height);
+void sheet_refresh(const struct SHEET_CTL * ctl);
+void sheet_slide(struct SHEET_CTL * const ctl, struct SHEET * const sht, int vx0, int vy0);
+void sheet_free(struct SHEET_CTL * const ctl, struct SHEET * const sht);

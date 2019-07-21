@@ -3,6 +3,7 @@
 
 static void HariMain_in(void);
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // main
 void HariMain (void)
@@ -27,7 +28,6 @@ static void HariMain_in (void)
     struct MOUSE_DECODE mousedec = {};
 
     /* mouse cursor */
-    unsigned char mcursor[256] = {};
     int mx = 0;
     int my = 0;
     int i = 0;
@@ -35,6 +35,13 @@ static void HariMain_in (void)
     /* memory map */
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
     unsigned int memtotal = 0;
+
+    /* sheet */
+    struct SHEET_CTL *shtctl = 0;
+    struct SHEET *sht_back = 0;
+    struct SHEET *sht_mouse = 0;
+    unsigned char *buf_back = 0;
+    unsigned char buf_mouse[256] = {};
 
     /* message buffer */
     char s[128] = {};
@@ -47,28 +54,46 @@ static void HariMain_in (void)
     init_keyboard();
     enable_mouse(&mousedec);
 
-
-    /* パレット初期化 */
-    init_palette();
-
-    /* スクリーン初期化 */
-    init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
-
-    /* マウスカーソルが画面中央になるように座標計算 */
-    mx = (binfo->scrnx - 16) / 2;
-    my = (binfo->scrny - 28 - 16) / 2;
-    init_mouse_cursor8(mcursor, COL8_DARK_CYAN);
-    putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
-    mysprintf(s, "(%03d, %03d)", mx, my);
-    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_WHITE, s);
-
+    /* メモリ初期化 */
     memtotal = memtest(0x00400000, 0xbfffffff);
     memman_init(memman);
     memman_free(memman, 0x00001000, 0x009e000);  /* 0x00001000 -- 0x0009eff */
     memman_free(memman, 0x00400000, memtotal - 0x00400000);
 
-    mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
-    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 48, COL8_WHITE, s);
+    /* パレット初期化 */
+    init_palette();
+
+    /* シート作成 */
+    shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
+
+    /* スクリーン初期化 */
+    sht_back = sheet_alock(shtctl);
+    buf_back = (unsigned char*) memman_alloc_4k(memman, binfo->scrny * binfo->scrnx);
+    sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);  // -1 -> 透明色なし
+    init_screen8(buf_back, binfo->scrnx, binfo->scrny);
+    // init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
+    sheet_slide(shtctl, sht_back, 0, 0);
+    sheet_updown(shtctl, sht_back, 0);
+
+    /* マウスカーソル初期化 */
+    sht_mouse = sheet_alock(shtctl);
+    sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
+    /* マウスカーソルが画面中央になるように座標計算 */
+    mx = (binfo->scrnx - 16) / 2;
+    my = (binfo->scrny - 28 - 16) / 2;
+    init_mouse_cursor8(buf_mouse, 99);
+    sheet_slide(shtctl, sht_mouse, mx, my);
+    sheet_updown(shtctl, sht_mouse, 1);
+
+    mysprintf(s, "(%03d, %03d)", mx, my);
+    putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
+
+    // mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
+    // putfonts8_asc(buf_back, binfo->scrnx, 0, 48, COL8_WHITE, s);
+    mysprintf(s, "s: %d  m:%d", sht_mouse->col_inv, buf_mouse[15]);
+    putfonts8_asc(buf_back, binfo->scrnx, 0, 48, COL8_WHITE, s);
+
+    sheet_refresh(shtctl);
 
     /* hlt */
     for (;;)
@@ -79,8 +104,9 @@ static void HariMain_in (void)
             i = fifo8_get(&keyinfo);
             io_sti();
             mysprintf(s, "key: %02x", i);
-            boxfill8(binfo->vram, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 31);
-            putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_WHITE, s);
+            boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 31);
+            putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_WHITE, s);
+            sheet_refresh(shtctl);
         }
         else if (fifo8_status(&mouseinfo) != 0)
         {
@@ -103,11 +129,8 @@ static void HariMain_in (void)
                 {
                     s[2] = 'C';
                 }
-                boxfill8(binfo->vram, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 8 - 1, 47);
-                putfonts8_asc(binfo->vram, binfo->scrnx, 0, 32, COL8_WHITE, s);
-
-                /* move cursor */
-                boxfill8(binfo->vram, binfo->scrnx, COL8_DARK_CYAN, mx, my, mx + 15, my + 15);
+                boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 8 - 1, 47);
+                putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_WHITE, s);
 
                 mx += mousedec.x;
                 my += mousedec.y;
@@ -130,9 +153,9 @@ static void HariMain_in (void)
             }
 
             mysprintf(s, "(%03d, %03d)", mx, my);
-            boxfill8(binfo->vram, binfo->scrnx, COL8_DARK_CYAN, 0, 0, 79, 15);
-            putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_WHITE, s);
-            putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
+            boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 0, 79, 15);
+            putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
+            sheet_slide(shtctl, sht_mouse, mx, my);  // -> 再描画は関数内部で実施
         }
         else
         {
@@ -140,4 +163,3 @@ static void HariMain_in (void)
         }
     }
 }
-

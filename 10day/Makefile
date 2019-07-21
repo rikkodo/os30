@@ -11,6 +11,7 @@ OBJECT_BOOTPACK= \
 	$(DIR_BIN)/keyboard.o \
 	$(DIR_BIN)/fonts.o \
 	$(DIR_BIN)/memory.o \
+	$(DIR_BIN)/sheet.o \
 	$(DIR_BIN)/mysprintf.o
 
 default :
