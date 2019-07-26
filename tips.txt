@@ -1,3 +1,5 @@
+gcc のバージョンによっては，-fno-pie をオプションにつける必要がある．
+
 http://yamaimo.hatenablog.jp/entry/2017/04/17/200000
 http://yamaimo.hatenablog.jp/entry/2017/04/24/200000
 
