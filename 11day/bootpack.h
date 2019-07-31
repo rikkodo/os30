@@ -206,6 +206,7 @@ struct SHEET {
     int col_inv;  // 透明色の番号
     int height;
     int flags;
+    struct SHEET_CTL *ctl;
 };
 
 struct SHEET_CTL {
@@ -220,7 +221,7 @@ struct SHEET_CTL {
 struct SHEET_CTL *shtctl_init(struct MEMMAN * memman, unsigned char *vram, int xsize, int ysize);
 struct SHEET *sheet_alock(struct SHEET_CTL *ctl);
 void sheet_setbuf(struct SHEET * const sheet, unsigned char *buf, int xsize, int ysize, int col_inv);
-void sheet_updown(struct SHEET_CTL * const ctl, struct SHEET * const sheet, int height);
-void sheet_refresh(const struct SHEET_CTL *ctl, struct SHEET * const sht, int bx0, int by0, int bx1, int by1);
-void sheet_slide(struct SHEET_CTL * const ctl, struct SHEET * const sht, int vx0, int vy0);
-void sheet_free(struct SHEET_CTL * const ctl, struct SHEET * const sht);
+void sheet_updown(struct SHEET * const sheet, int height);
+void sheet_refresh(struct SHEET * const sht, int bx0, int by0, int bx1, int by1);
+void sheet_slide(struct SHEET * const sht, int vx0, int vy0);
+void sheet_free(struct SHEET * const sht);

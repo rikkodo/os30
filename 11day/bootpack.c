@@ -72,8 +72,8 @@ static void HariMain_in (void)
     sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);  // -1 -> 透明色なし
     init_screen8(buf_back, binfo->scrnx, binfo->scrny);
     // init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
-    sheet_slide(shtctl, sht_back, 0, 0);
-    sheet_updown(shtctl, sht_back, 0);
+    sheet_slide(sht_back, 0, 0);
+    sheet_updown(sht_back, 0);
 
     /* マウスカーソル初期化 */
     sht_mouse = sheet_alock(shtctl);
@@ -82,12 +82,12 @@ static void HariMain_in (void)
     mx = (binfo->scrnx - 16) / 2;
     my = (binfo->scrny - 28 - 16) / 2;
     init_mouse_cursor8(buf_mouse, 99);
-    sheet_slide(shtctl, sht_mouse, mx, my);
-    sheet_updown(shtctl, sht_mouse, 1);
+    sheet_slide(sht_mouse, mx, my);
+    sheet_updown(sht_mouse, 1);
 
     mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts8_asc(buf_back, binfo->scrnx, 0, 48, COL8_WHITE, s);
-    sheet_refresh(shtctl, sht_back, 0, 48, binfo->scrnx, 64);
+    sheet_refresh(sht_back, 0, 48, binfo->scrnx, 64);
 
     /* hlt */
     for (;;)
@@ -100,7 +100,7 @@ static void HariMain_in (void)
             mysprintf(s, "key: %02x", i);
             boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 32 - 1);
             putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_WHITE, s);
-            sheet_refresh(shtctl, sht_back, 0, 16, 32 * 8, 32);
+            sheet_refresh(sht_back, 0, 16, 32 * 8, 32);
         }
         else if (fifo8_status(&mouseinfo) != 0)
         {
@@ -125,7 +125,7 @@ static void HariMain_in (void)
                 }
                 boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 13 - 1, 48 - 1);
                 putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_WHITE, s);
-                sheet_refresh(shtctl, sht_back, 0, 32, 32 * 13, 48);
+                sheet_refresh(sht_back, 0, 32, 32 * 13, 48);
 
                 mx += mousedec.x;
                 my += mousedec.y;
@@ -137,21 +137,21 @@ static void HariMain_in (void)
                 {
                     my = 0;
                 }
-                if (mx > binfo->scrnx - 16)
+                if (mx > binfo->scrnx - 1)
                 {
-                    mx = binfo->scrnx - 16;
+                    mx = binfo->scrnx - 1;
                 }
-                if (my > binfo->scrny - 16)
+                if (my > binfo->scrny - 1)
                 {
-                    my = binfo->scrny - 16;
+                    my = binfo->scrny - 1;
                 }
             }
 
             mysprintf(s, "(%03d, %03d)", mx, my);
             boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 0, 79, 15);
             putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
-            sheet_refresh(shtctl, sht_back, 0, 0, 80, 16);
-            sheet_slide(shtctl, sht_mouse, mx, my);  // -> 再描画は関数内部で実施
+            sheet_refresh(sht_back, 0, 0, 80, 16);
+            sheet_slide(sht_mouse, mx, my);  // -> 再描画は関数内部で実施
         }
         else
         {
