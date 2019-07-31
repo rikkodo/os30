@@ -2,6 +2,7 @@
 
 
 static void HariMain_in(void);
+static void make_window8(unsigned char *buf, int xsize, int ysize, const char * title);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,6 +44,9 @@ static void HariMain_in (void)
     unsigned char *buf_back = 0;
     unsigned char buf_mouse[256] = {};
 
+    struct SHEET *sht_win = 0;
+    unsigned char *buf_win = 0;
+
     /* message buffer */
     char s[128] = {};
 
@@ -75,6 +79,16 @@ static void HariMain_in (void)
     sheet_slide(sht_back, 0, 0);
     sheet_updown(sht_back, 0);
 
+    /* テストウインドウ作成 */
+    sht_win = sheet_alock(shtctl);
+    buf_win = (unsigned char*) memman_alloc_4k(memman, 160 * 68);
+    sheet_setbuf(sht_win, buf_win, 160, 68, -1);
+    make_window8(buf_win, 160, 68, "window");
+    putfonts8_asc(buf_win, 160, 24, 28, COL8_BLACK, "Welcome to");
+    putfonts8_asc(buf_win, 160, 24, 44, COL8_BLACK, "  Haribote-OS!");
+    sheet_slide(sht_win, 80, 72);
+    sheet_updown(sht_win, 1);
+
     /* マウスカーソル初期化 */
     sht_mouse = sheet_alock(shtctl);
     sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
@@ -83,7 +97,7 @@ static void HariMain_in (void)
     my = (binfo->scrny - 28 - 16) / 2;
     init_mouse_cursor8(buf_mouse, 99);
     sheet_slide(sht_mouse, mx, my);
-    sheet_updown(sht_mouse, 1);
+    sheet_updown(sht_mouse, 2);
 
     mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts8_asc(buf_back, binfo->scrnx, 0, 48, COL8_WHITE, s);
@@ -156,6 +170,74 @@ static void HariMain_in (void)
         else
         {
             io_stihlt();
+        }
+    }
+}
+
+/* WINDOW */
+
+void make_window8(unsigned char *buf, int xsize, int ysize, const char * title)
+{
+    static char closebtn[14][16] = {
+        "OOOOOOOOOOOOOOO@",
+        "OQQQQQQQQQQQQQ$@",
+        "OQQQQQQQQQQQQQ$@",
+        "OQQQ@@QQQQ@@QQ$@",
+        "OQQQQ@@QQ@@QQQ$@",
+        "OQQQQQ@@@@QQQQ$@",
+        "OQQQQQQ@@QQQQQ$@",
+        "OQQQQQ@@@@QQQQ$@",
+        "OQQQQ@@QQ@@QQQ$@",
+        "OQQQ@@QQQQ@@QQ$@",
+        "OQQQQQQQQQQQQQ$@",
+        "OQQQQQQQQQQQQQ$@",
+        "0$$$$$$$$$$$$$$@",
+        "@@@@@@@@@@@@@@@@",
+    };
+
+    int x = 0;
+    int y = 0;
+
+    char col = 0;
+    //                                       ///////////,///////////,///////////,///////////,
+    boxfill8(buf, xsize, COL8_GRAY,          0,          0,          xsize - 1,  0           );
+    boxfill8(buf, xsize, COL8_WHITE,         1,          1,          xsize - 2,  1           );
+    boxfill8(buf, xsize, COL8_GRAY,          0,          0,          0,          ysize - 1   );
+    boxfill8(buf, xsize, COL8_WHITE,         1,          1,          1,          ysize - 2   );
+    boxfill8(buf, xsize, COL8_DARK_GRAY,     xsize - 2,  1,          xsize - 2,  ysize - 2   );
+    boxfill8(buf, xsize, COL8_BLACK,         xsize - 1,  0,          xsize - 1,  ysize - 1   );
+
+    boxfill8(buf, xsize, COL8_GRAY,          2,          2,          xsize - 3,  ysize - 3   );
+    boxfill8(buf, xsize, COL8_DARK_BLUE,     3,          3,          xsize - 4,  20          );
+
+    boxfill8(buf, xsize, COL8_DARK_GRAY,     1,          ysize - 2,  xsize - 2,  ysize - 2   );
+    boxfill8(buf, xsize, COL8_BLACK,         0,          ysize - 1,  xsize - 1,  ysize - 1   );
+
+    putfonts8_asc(buf, xsize, 24, 4, COL8_WHITE, title);
+
+    for (y = 0; y < 14; y++)
+    {
+        for (x = 0; x < 16; x++)
+        {
+            switch(closebtn[y][x])
+            {
+                case '@':
+                    col = COL8_BLACK;
+                    break;
+
+                case '$':
+                    col = COL8_DARK_GRAY;
+                    break;
+
+                case 'Q':
+                    col = COL8_GRAY;
+                    break;
+
+                default:
+                    col = COL8_WHITE;
+                    break;
+            }
+            buf[(5+y) * xsize + (xsize - 21 + x)] = col;
         }
     }
 }
