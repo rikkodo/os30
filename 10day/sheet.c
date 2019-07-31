@@ -99,7 +99,7 @@ void sheet_updown(struct SHEET_CTL * const ctl, struct SHEET * const sheet, int 
             }
             ctl->top--;
         }
-        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->bysize);  // 再描画
+        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize);  // 再描画
     }
     else if (old < height)
     {
@@ -125,7 +125,7 @@ void sheet_updown(struct SHEET_CTL * const ctl, struct SHEET * const sheet, int 
             ctl->sheets[height] = sheet;
             ctl->top++;
         }
-        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->bysize);  // 再描画
+        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize);  // 再描画
     }
     return;
 }
