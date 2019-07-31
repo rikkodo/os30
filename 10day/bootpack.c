@@ -85,15 +85,9 @@ static void HariMain_in (void)
     sheet_slide(shtctl, sht_mouse, mx, my);
     sheet_updown(shtctl, sht_mouse, 1);
 
-    mysprintf(s, "(%03d, %03d)", mx, my);
-    putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
-
-    // mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
-    // putfonts8_asc(buf_back, binfo->scrnx, 0, 48, COL8_WHITE, s);
-    mysprintf(s, "s: %d  m:%d", sht_mouse->col_inv, buf_mouse[15]);
+    mysprintf(s, "memory %dMB    free %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts8_asc(buf_back, binfo->scrnx, 0, 48, COL8_WHITE, s);
-
-    sheet_refresh(shtctl);
+    sheet_refresh(shtctl, sht_back, 0, 48, binfo->scrnx, 64);
 
     /* hlt */
     for (;;)
@@ -104,9 +98,9 @@ static void HariMain_in (void)
             i = fifo8_get(&keyinfo);
             io_sti();
             mysprintf(s, "key: %02x", i);
-            boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 31);
+            boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 32 - 1);
             putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_WHITE, s);
-            sheet_refresh(shtctl);
+            sheet_refresh(shtctl, sht_back, 0, 16, 32 * 8, 32);
         }
         else if (fifo8_status(&mouseinfo) != 0)
         {
@@ -129,8 +123,9 @@ static void HariMain_in (void)
                 {
                     s[2] = 'C';
                 }
-                boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 8 - 1, 47);
+                boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 13 - 1, 48 - 1);
                 putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_WHITE, s);
+                sheet_refresh(shtctl, sht_back, 0, 32, 32 * 13, 48);
 
                 mx += mousedec.x;
                 my += mousedec.y;
@@ -155,6 +150,7 @@ static void HariMain_in (void)
             mysprintf(s, "(%03d, %03d)", mx, my);
             boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 0, 79, 15);
             putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
+            sheet_refresh(shtctl, sht_back, 0, 0, 80, 16);
             sheet_slide(shtctl, sht_mouse, mx, my);  // -> 再描画は関数内部で実施
         }
         else
