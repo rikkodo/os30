@@ -37,6 +37,9 @@ static void HariMain_in (void)
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
     unsigned int memtotal = 0;
 
+    /* counter */
+    unsigned int counter = 0;
+
     /* sheet */
     struct SHEET_CTL *shtctl = 0;
     struct SHEET *sht_back = 0;
@@ -81,11 +84,9 @@ static void HariMain_in (void)
 
     /* テストウインドウ作成 */
     sht_win = sheet_alock(shtctl);
-    buf_win = (unsigned char*) memman_alloc_4k(memman, 160 * 68);
-    sheet_setbuf(sht_win, buf_win, 160, 68, -1);
-    make_window8(buf_win, 160, 68, "window");
-    putfonts8_asc(buf_win, 160, 24, 28, COL8_BLACK, "Welcome to");
-    putfonts8_asc(buf_win, 160, 24, 44, COL8_BLACK, "  Haribote-OS!");
+    buf_win = (unsigned char*) memman_alloc_4k(memman, 160 * 52);
+    sheet_setbuf(sht_win, buf_win, 160, 52, -1);
+    make_window8(buf_win, 160, 52, "counter");
     sheet_slide(sht_win, 80, 72);
     sheet_updown(sht_win, 1);
 
@@ -106,70 +107,83 @@ static void HariMain_in (void)
     /* hlt */
     for (;;)
     {
+        /* --> Start Counter */
+        counter++;
+        mysprintf(s, "%010d", counter);
+        boxfill8(buf_win, 160, COL8_GRAY, 40, 28, 119, 43);
+        putfonts8_asc(buf_win, 160, 40, 28, COL8_BLACK, s);
+        sheet_refresh(sht_win, 40, 28, 120, 44);
+        /* <-- End   Counter */
+
         io_cli();
-        if (fifo8_status(&keyinfo) != 0)
+        if (fifo8_status(&keyinfo) == 0 && fifo8_status(&mouseinfo) == 0)
         {
-            i = fifo8_get(&keyinfo);
+            // io_stihlt();
             io_sti();
-            mysprintf(s, "key: %02x", i);
-            boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 32 - 1);
-            putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_WHITE, s);
-            sheet_refresh(sht_back, 0, 16, 32 * 8, 32);
-        }
-        else if (fifo8_status(&mouseinfo) != 0)
-        {
-            i = fifo8_get(&mouseinfo);
-            io_sti();
-
-            if (mouse_decode(&mousedec, i) == 1)
-            {
-                /* output */
-                mysprintf(s, "[lcr] %3d %3d", mousedec.x, mousedec.y);
-                if ((mousedec.btn & 0x01) != 0)
-                {
-                    s[1] = 'L';
-                }
-                if ((mousedec.btn & 0x02) != 0)
-                {
-                    s[3] = 'R';
-                }
-                if ((mousedec.btn & 0x04) != 0)
-                {
-                    s[2] = 'C';
-                }
-                boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 13 - 1, 48 - 1);
-                putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_WHITE, s);
-                sheet_refresh(sht_back, 0, 32, 32 * 13, 48);
-
-                mx += mousedec.x;
-                my += mousedec.y;
-                if (mx < 0)
-                {
-                    mx = 0;
-                }
-                if (my < 0)
-                {
-                    my = 0;
-                }
-                if (mx > binfo->scrnx - 1)
-                {
-                    mx = binfo->scrnx - 1;
-                }
-                if (my > binfo->scrny - 1)
-                {
-                    my = binfo->scrny - 1;
-                }
-            }
-
-            mysprintf(s, "(%03d, %03d)", mx, my);
-            boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 0, 79, 15);
-            putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
-            sheet_refresh(sht_back, 0, 0, 80, 16);
-            sheet_slide(sht_mouse, mx, my);  // -> 再描画は関数内部で実施
         }
         else
         {
-            io_stihlt();
+            if (fifo8_status(&keyinfo) != 0)
+            {
+                i = fifo8_get(&keyinfo);
+                io_sti();
+                mysprintf(s, "key: %02x", i);
+                boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 16, 32 * 8 - 1, 32 - 1);
+                putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_WHITE, s);
+                sheet_refresh(sht_back, 0, 16, 32 * 8, 32);
+            }
+
+            if (fifo8_status(&mouseinfo) != 0)
+            {
+                i = fifo8_get(&mouseinfo);
+                io_sti();
+
+                if (mouse_decode(&mousedec, i) == 1)
+                {
+                    /* output */
+                    mysprintf(s, "[lcr] %3d %3d", mousedec.x, mousedec.y);
+                    if ((mousedec.btn & 0x01) != 0)
+                    {
+                        s[1] = 'L';
+                    }
+                    if ((mousedec.btn & 0x02) != 0)
+                    {
+                        s[3] = 'R';
+                    }
+                    if ((mousedec.btn & 0x04) != 0)
+                    {
+                        s[2] = 'C';
+                    }
+                    boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 32, 32 * 13 - 1, 48 - 1);
+                    putfonts8_asc(buf_back, binfo->scrnx, 0, 32, COL8_WHITE, s);
+                    sheet_refresh(sht_back, 0, 32, 32 * 13, 48);
+
+                    mx += mousedec.x;
+                    my += mousedec.y;
+                    if (mx < 0)
+                    {
+                        mx = 0;
+                    }
+                    if (my < 0)
+                    {
+                        my = 0;
+                    }
+                    if (mx > binfo->scrnx - 1)
+                    {
+                        mx = binfo->scrnx - 1;
+                    }
+                    if (my > binfo->scrny - 1)
+                    {
+                        my = binfo->scrny - 1;
+                    }
+                }
+
+                mysprintf(s, "(%03d, %03d)", mx, my);
+                boxfill8(buf_back, binfo->scrnx, COL8_DARK_CYAN, 0, 0, 79, 15);
+                putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_WHITE, s);
+                sheet_refresh(sht_back, 0, 0, 80, 16);
+                sheet_slide(sht_mouse, mx, my); // -> 再描画は関数内部で実施
+            }
         }
     }
 }
