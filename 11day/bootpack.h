@@ -211,6 +211,7 @@ struct SHEET {
 
 struct SHEET_CTL {
     unsigned char *vram;
+    unsigned char *map;
     int xsize;
     int ysize;
     int top;
