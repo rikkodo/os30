@@ -3,7 +3,7 @@
 /* FLAGS */
 #define SHEET_USE      1 << 0;
 
-static void sheet_refreshsub(const struct SHEET_CTL * ctl, int vx0, int vy0, int vx1, int vy1);
+static void sheet_refreshsub(const struct SHEET_CTL * ctl, int vx0, int vy0, int vx1, int vy1, int h0);
 
 struct SHEET_CTL *shtctl_init(struct MEMMAN * memman, unsigned char *vram, int xsize, int ysize)
 {
@@ -87,6 +87,7 @@ void sheet_updown(struct SHEET * const sheet, int height)
                 ctl->sheets[h]-> height = h;
             }
             ctl->sheets[height] = sheet;
+            sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize, height + 1); // 再描画
         }
         else
         {
@@ -100,8 +101,8 @@ void sheet_updown(struct SHEET * const sheet, int height)
                 }
             }
             ctl->top--;
+            sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize, 0); // 全て再描画
         }
-        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize);  // 再描画
     }
     else if (old < height)
     {
@@ -127,7 +128,7 @@ void sheet_updown(struct SHEET * const sheet, int height)
             ctl->sheets[height] = sheet;
             ctl->top++;
         }
-        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize);  // 再描画
+        sheet_refreshsub(ctl, sheet->vx0, sheet->vy0, sheet->vx0 + sheet->bxsize, sheet->vy0 + sheet->bysize, height);  // 再描画
     }
     return;
 }
@@ -136,12 +137,12 @@ void sheet_refresh(struct SHEET * const sht, int bx0, int by0, int bx1, int by1)
 {
     if (sht->height >= 0)
     {
-        sheet_refreshsub(sht->ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1);
+        sheet_refreshsub(sht->ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1, sht->height);
     }
     return;
 }
 
-static void sheet_refreshsub(const struct SHEET_CTL * ctl, int vx0, int vy0, int vx1, int vy1)
+static void sheet_refreshsub(const struct SHEET_CTL * ctl, int vx0, int vy0, int vx1, int vy1, int h0)
 {
     int h = 0;
     int bx = 0;
@@ -165,7 +166,7 @@ static void sheet_refreshsub(const struct SHEET_CTL * ctl, int vx0, int vy0, int
     if (vx1 > ctl->xsize){vx1 = ctl->xsize;}
     if (vy1 > ctl->ysize){vy1 = ctl->ysize;}
 
-    for (h = 0; h <= ctl->top; h++)
+    for (h = h0; h <= ctl->top; h++)
     {
         sht = ctl->sheets[h];
         buf = sht->buf;
@@ -205,8 +206,8 @@ void sheet_slide(struct SHEET * const sht, int vx0, int vy0)
     if (sht->height >= 0)
     {
         // 表示中ならば再描画
-        sheet_refreshsub(sht->ctl, pre_vx0, pre_vy0, pre_vx0 + sht->bxsize, pre_vy0 + sht->bysize);
-        sheet_refreshsub(sht->ctl, vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize);
+        sheet_refreshsub(sht->ctl, pre_vx0, pre_vy0, pre_vx0 + sht->bxsize, pre_vy0 + sht->bysize, 0);
+        sheet_refreshsub(sht->ctl, vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize, sht->height);
     }
     return;
 }
