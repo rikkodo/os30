@@ -7,4 +7,4 @@ RUN apt update && \
     rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 # docker build -t <name> .
-# docker run --rm --name <name> -t -i /bin/bash
+# docker run -v<HOST-DIR>:<GUEST-DIR> -it os30 /bin/bash
