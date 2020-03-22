@@ -29,6 +29,7 @@ unsigned int memtest_sub(unsigned int start, unsigned int end);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
+void asm_inthandler20(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // fifo.c
@@ -194,7 +195,6 @@ int memman_free_4k(struct MEMMAN *memman, unsigned int addr, unsigned int size);
 
 ////////////////////////////////////////////////////////////////////////////////
 // sheet.c
-
 #define MAX_SEEHTS   (256)
 
 struct SHEET {
@@ -226,3 +226,8 @@ void sheet_updown(struct SHEET * const sheet, int height);
 void sheet_refresh(struct SHEET * const sht, int bx0, int by0, int bx1, int by1);
 void sheet_slide(struct SHEET * const sht, int vx0, int vy0);
 void sheet_free(struct SHEET * const sht);
+
+////////////////////////////////////////////////////////////////////////////////
+// timer.c
+void init_pit(void);
+void inthandler20(int *esp);

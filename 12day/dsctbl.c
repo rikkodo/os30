@@ -24,7 +24,8 @@ void init_gdtidt(void)
     }
     load_idtr(LIMIT_IDT, ADR_IDT);
 
-    /* マウス，キーボード割り込み */
+    /* マウス，キーボード，タイマー割り込み */
+    set_gatedesc(idt + 0x20, (int) asm_inthandler20, 2 * 8, AR_INTGATE32);
     set_gatedesc(idt + 0x21, (int) asm_inthandler21, 2 * 8, AR_INTGATE32);
     set_gatedesc(idt + 0x27, (int) asm_inthandler27, 2 * 8, AR_INTGATE32);
     set_gatedesc(idt + 0x2c, (int) asm_inthandler2c, 2 * 8, AR_INTGATE32);

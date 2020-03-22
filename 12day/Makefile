@@ -12,6 +12,7 @@ OBJECT_BOOTPACK= \
 	$(DIR_BIN)/fonts.o \
 	$(DIR_BIN)/memory.o \
 	$(DIR_BIN)/sheet.o \
+	$(DIR_BIN)/timer.o \
 	$(DIR_BIN)/mysprintf.o
 
 default :
