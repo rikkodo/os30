@@ -37,9 +37,6 @@ static void HariMain_in (void)
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
     unsigned int memtotal = 0;
 
-    /* counter */
-    unsigned int counter = 0;
-
     /* sheet */
     struct SHEET_CTL *shtctl = 0;
     struct SHEET *sht_back = 0;
@@ -109,8 +106,7 @@ static void HariMain_in (void)
     for (;;)
     {
         /* --> Start Counter */
-        counter++;
-        mysprintf(s, "%010d", counter);
+        mysprintf(s, "%010d", timerctl.count);
         boxfill8(buf_win, 160, COL8_GRAY, 40, 28, 119, 43);
         putfonts8_asc(buf_win, 160, 40, 28, COL8_BLACK, s);
         sheet_refresh(sht_win, 40, 28, 120, 44);
